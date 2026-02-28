@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, Brain, BookOpen, Clock, Camera, Target,
-  Eye, Users, BarChart3, Settings, LogOut, Menu, X, Flame, Sparkles,
+  Eye, Users, BarChart3, Settings, LogOut, Menu, X, Flame, Sparkles, Trophy,
 } from 'lucide-react';
 
 const navItems = [
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/goals', icon: Target, label: 'Goals' },
   { to: '/vision-boards', icon: Eye, label: 'Vision Boards' },
   { to: '/connections', icon: Users, label: 'Connections' },
+  { to: '/achievements', icon: Trophy, label: 'Achievements' },
   { to: '/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
@@ -121,7 +122,7 @@ export default function MainLayout() {
             <div className="flex items-center gap-3">
               <div className="streak-badge">
                 <Flame className="h-3.5 w-3.5" />
-                <span>0 day streak</span>
+                <span>{user?.streak || 0} day streak</span>
               </div>
             </div>
           </div>
