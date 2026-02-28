@@ -20,6 +20,16 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+
+const normalizeUser = (profile: any): User => ({
+  id: profile.id || profile._id,
+  name: profile.name,
+  email: profile.email,
+  level: profile.level,
+  xp: profile.xp,
+  streak: profile.streak,
+});
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -41,14 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const { data } = await api.get("/auth/profile");
         const profile = data.user || data;
-        const normalizedUser = {
-          id: profile.id || profile._id,
-          name: profile.name,
-          email: profile.email,
-          level: profile.level,
-          xp: profile.xp,
-          streak: profile.streak,
-        };
+        const normalizedUser = normalizeUser(profile);
         localStorage.setItem("user", JSON.stringify(normalizedUser));
         setUser(normalizedUser);
       } catch {
@@ -67,9 +70,10 @@ const login = async (email: string, password: string) => {
   const { data } = await api.post("/auth/login", { email, password });
 
   sessionStorage.setItem("token", data.token);
-  localStorage.setItem("user", JSON.stringify(data.user));
+  const normalizedUser = normalizeUser(data.user);
+  localStorage.setItem("user", JSON.stringify(normalizedUser));
 
-  setUser(data.user);
+  setUser(normalizedUser);
 };
 
 const register = async (name: string, email: string, password: string) => {
@@ -80,9 +84,10 @@ const register = async (name: string, email: string, password: string) => {
   });
 
   sessionStorage.setItem("token", data.token);
-  localStorage.setItem("user", JSON.stringify(data.user));
+  const normalizedUser = normalizeUser(data.user);
+  localStorage.setItem("user", JSON.stringify(normalizedUser));
 
-  setUser(data.user);
+  setUser(normalizedUser);
 };
 
   const logout = () => {
