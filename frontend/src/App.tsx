@@ -8,6 +8,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import MainLayout from "@/layouts/MainLayout";
 
+import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import AICompanion from "@/pages/AICompanion";
@@ -19,6 +20,7 @@ import DailyPhoto from "@/pages/DailyPhoto";
 import Connections from "@/pages/Connections";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
+import Achievements from "@/pages/Achievements";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,9 +34,9 @@ export default function App() {
         <BrowserRouter>
           <AuthProvider>
             <Routes>
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Auth />} />
               <Route path="/register" element={<Auth />} />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
               <Route element={<ProtectedRoute />}>
                 <Route element={<MainLayout />}>
@@ -48,6 +50,7 @@ export default function App() {
                   <Route path="/connections" element={<Connections />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/achievements" element={<Achievements />} />
 
                   {/* Backward-compatible aliases */}
                   <Route path="/vision" element={<Navigate to="/vision-boards" replace />} />
