@@ -6,9 +6,8 @@ import { LoadingSpinner, ErrorState } from '@/components/StateHelpers';
 import { motion } from 'framer-motion';
 import {
   BookOpen, Target, Camera, Brain, Flame, Trophy, Star,
-  TrendingUp, Plus, ChevronRight,
+  TrendingUp, ChevronRight,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface DashboardData {
   xp: number;
@@ -16,6 +15,10 @@ interface DashboardData {
   level: number;
   streak: number;
   recentActivity: { id: string; type: string; title: string; date: string }[];
+}
+
+interface GamificationData {
+  badges: string[];
 }
 
 const quickActions = [
@@ -38,27 +41,41 @@ const fadeUp = {
 export default function Dashboard() {
   const { user } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [badgeCount, setBadgeCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchDashboard = () => {
+  const fetchDashboard = async () => {
     setLoading(true);
-    api.get<DashboardData>('/dashboard')
-      .then((res) => setData(res.data))
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
+    setError('');
+
+    try {
+      const [dashboardRes, gamificationRes] = await Promise.all([
+        api.get<DashboardData>('/dashboard'),
+        api.get<GamificationData>('/gamification'),
+      ]);
+      setData(dashboardRes.data);
+      setBadgeCount((gamificationRes.data.badges || []).length);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || 'Failed to load dashboard');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { fetchDashboard(); }, []);
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
 
   if (loading) return <LoadingSpinner message="Loading your dashboard..." />;
   if (error) return <ErrorState message={error} onRetry={fetchDashboard} />;
 
-  const xpPercent = data ? Math.round((data.xp / data.xpToNext) * 100) : 0;
+  const xpTarget = (data?.level || 1) * 100;
+  const xpInLevel = (data?.xp || 0) % 100;
+  const xpPercent = Math.min(100, Math.max(0, Math.round((xpInLevel / 100) * 100)));
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-6">
-      {/* Welcome */}
       <motion.div variants={fadeUp}>
         <h1 className="page-title">
           Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'},{' '}
@@ -67,7 +84,6 @@ export default function Dashboard() {
         <p className="page-subtitle">Here's your life at a glance</p>
       </motion.div>
 
-      {/* Stats row */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="stat-card">
           <div className="flex items-center gap-2">
@@ -76,16 +92,19 @@ export default function Dashboard() {
           </div>
           <span className="stat-value">{data?.level || 1}</span>
         </div>
+
         <div className="stat-card">
           <div className="flex items-center gap-2">
             <Star className="h-4 w-4 text-xp" />
             <span className="stat-label">XP</span>
           </div>
           <span className="stat-value">{data?.xp || 0}</span>
-          <div className="xp-bar">
+          <p className="text-xs text-muted-foreground">Target for next level: {xpTarget}</p>
+          <div className="xp-bar mt-1">
             <div className="xp-bar-fill" style={{ width: `${xpPercent}%` }} />
           </div>
         </div>
+
         <div className="stat-card">
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-streak" />
@@ -93,16 +112,16 @@ export default function Dashboard() {
           </div>
           <span className="stat-value">{data?.streak || 0} days</span>
         </div>
+
         <div className="stat-card">
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-level" />
             <span className="stat-label">Badges</span>
           </div>
-          <span className="stat-value">0</span>
+          <span className="stat-value">{badgeCount}</span>
         </div>
       </motion.div>
 
-      {/* Quick Actions */}
       <motion.div variants={fadeUp}>
         <h2 className="text-lg font-semibold mb-3 font-serif">Quick Actions</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -119,7 +138,6 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* Recent Activity */}
       <motion.div variants={fadeUp}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold font-serif">Recent Activity</h2>
@@ -127,6 +145,7 @@ export default function Dashboard() {
             View all <ChevronRight className="h-3 w-3" />
           </Link>
         </div>
+
         <div className="glass-card divide-y divide-border">
           {data?.recentActivity?.length ? (
             data.recentActivity.map((item) => (
@@ -136,14 +155,14 @@ export default function Dashboard() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.date}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(item.date).toLocaleDateString()}</p>
                 </div>
               </div>
             ))
           ) : (
             <div className="p-8 text-center text-sm text-muted-foreground">
               <Brain className="h-8 w-8 mx-auto mb-2 opacity-40" />
-              <p>No activity yet. Start by adding a journal entry or setting a goal!</p>
+              <p>No activity yet. Start by adding a journal entry or setting a goal.</p>
             </div>
           )}
         </div>
