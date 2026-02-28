@@ -1,12 +1,11 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, BookOpen, Target, Image, Camera,
   Trophy, Sparkles, Users, Settings, ChevronLeft,
-  Menu, Archive, BarChart3, Brain, LogOut,
+  Menu, Archive, BarChart3, Brain,
 } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -17,7 +16,7 @@ const navItems = [
   { icon: Camera, label: "Daily Photo", path: "/daily-photo" },
   { icon: Trophy, label: "Achievements", path: "/achievements" },
   { icon: Users, label: "Connections", path: "/connections" },
-  { icon: Brain, label: "AI Companion", path: "/ai" },
+  { icon: Sparkles, label: "AI Companion", path: "/ai" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
@@ -38,15 +37,14 @@ const titleByPath: Record<string, string> = {
 
 export default function MainLayout() {
   const location = useLocation();
-  const { logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const title = useMemo(() => titleByPath[location.pathname] || "LifeOS", [location.pathname]);
-
   return (
     <div className="min-h-screen bg-background flex">
-      {mobileOpen && <div className="fixed inset-0 bg-foreground/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />}
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-foreground/20 z-40 md:hidden" onClick={() => setMobileOpen(false)} />
+      )}
 
       <aside
         className={`fixed top-0 left-0 h-full z-50 bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300
@@ -82,20 +80,13 @@ export default function MainLayout() {
           })}
         </nav>
 
-        <div className="p-2 border-t border-sidebar-border hidden md:block space-y-2">
+        <div className="p-2 border-t border-sidebar-border hidden md:block">
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
           >
             <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? "rotate-180" : ""}`} />
             {!collapsed && <span>Collapse</span>}
-          </button>
-          <button
-            onClick={logout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            {!collapsed && <span>Logout</span>}
           </button>
         </div>
       </aside>
@@ -105,16 +96,10 @@ export default function MainLayout() {
           <button className="md:hidden text-foreground" onClick={() => setMobileOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="font-display text-xl font-bold text-foreground">{title}</h1>
+          <h1 className="font-display text-xl font-bold text-foreground">{titleByPath[location.pathname] || "LifeOS"}</h1>
         </header>
-
         <div className="p-6">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-          >
+          <motion.div key={location.pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
             <Outlet />
           </motion.div>
         </div>
